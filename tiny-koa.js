@@ -4,15 +4,20 @@ import response from "./response.js";
 import context from "./context.js";
 
 export default class TinyKoa {
+  constructor() {
+    this.middlewares = [];
+  }
+
   use(cb) {
-    this.callback = cb;
+    this.middlewares.push(cb);
   }
 
   listen(port, cb) {
-    const server = http.createServer((req, res) => {
+    const server = http.createServer(async (req, res) => {
       const ctx = this.createContext(req, res);
 
-      this.callback(ctx);
+      const finalFn = this.compose(this.middlewares);
+      await finalFn(ctx);
 
       res.end(res.body);
     });
@@ -30,4 +35,13 @@ export default class TinyKoa {
 
     return ctx;
   }
+
+  compose = middlewares => ctx => {
+    const dispatch = i => {
+      const fn = middlewares[i];
+      if (!fn) return Promise.resolve();
+      return Promise.resolve(fn(ctx, () => dispatch(i + 1)));
+    };
+    return dispatch(0);
+  };
 }
