@@ -1,10 +1,13 @@
-import http from "http";
+import TinyKoa from "./tiny-koa.js";
 
-const server = http.createServer((req, res) => {
-  res.writeHead(200);
-  res.end(`
-    <h1>Hello World!</h1>
-    `);
+const app = new TinyKoa();
+
+app.use((req, res) => {
+  if (req.url === "/") {
+    res.end("<h1>Hello Koa!</h1>");
+  }
 });
 
-server.listen(3000);
+app.listen(3000, () => {
+  console.log("server listening on port 3000");
+});
